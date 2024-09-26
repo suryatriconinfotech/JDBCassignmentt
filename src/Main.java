@@ -1,10 +1,23 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.*;
+import java.util.Properties;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        String url = "jdbc:mysql://localhost:3306/jdbcdemo";
-        String username = "root";
-        String password = "root";
+        Properties properties = new Properties();
+        FileInputStream input = null;
+        try {
+            input = new FileInputStream("dbconfig.properties");
+            properties.load(input);
+        }  catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String url = properties.getProperty("url");
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
         Connection connection = DriverManager.getConnection(url, username, password);
 
         boolean autoCommit = connection.getAutoCommit();
@@ -28,7 +41,7 @@ public class Main {
 
                 String updateAuthorSql = "UPDATE authors SET no_of_books_wrote = ? WHERE id = ?";
                 PreparedStatement updateAuthorStmt = connection.prepareStatement(updateAuthorSql);
-                updateAuthorStmt.setInt(1, booksWritten + 1);  // Increment book count
+                updateAuthorStmt.setInt(1, booksWritten + 1);
                 updateAuthorStmt.setInt(2, authorId);
                 updateAuthorStmt.executeUpdate();
                 System.out.println("Updated existing author: " + authorName);
